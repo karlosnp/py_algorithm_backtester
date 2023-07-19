@@ -99,6 +99,10 @@ class Portfolio:
 
     def max_drawdown(self,) -> float:
         return max(self.dds)
+    
+    def CAR(self, num_of_years : float) -> float:
+        return self.return_curve[-1] ** 1/num_of_years
+    
     def buy(self, price : float) -> None:
         if self.in_position: return
         self.buy_price = price
@@ -118,6 +122,7 @@ class Engine:
 
     def __init__(self,algorithm : Algorithm, ohlcv,symbol, price_column = 'Adj Close', indicator_columns = []):
         self.algorithm = algorithm
+        self.df = ohlcv
         self.ohlcv = OHLCV(ohlcv=ohlcv,symbol = symbol, price_column=price_column,indicator_columns=indicator_columns)
 
     def run(self,verbose : bool = False, plot : bool = False) -> float:
@@ -138,13 +143,13 @@ class Engine:
             print('Max drawdown: {:.2f} %'.format(self.algorithm.portfolio.max_drawdown()* 100))
             first_price = [x.Price for x in self.ohlcv][0]
             last_price = [x.Price for x in self.ohlcv][-1]
-            print('Benchmark return: {:.2f} %'.format((last_price/first_price - 1) * 100))
+            print('Buy and hold return: {:.2f} %'.format((last_price/first_price - 1) * 100))
         
         if plot:
             fig, ax1 = plt.subplots()
 
             ax2 = ax1.twinx()
-            ax1.plot(df_spy['Date'].to_list(), algorithm.portfolio.return_curve, 'g-')
+            ax1.plot(self.df['Date'].to_list(), self.algorithm.portfolio.return_curve, 'g-')
             # ax2.plot(df_spy['Date'].to_list(), df_spy['Adj Close'], 'b-')
 
             plt.show()
